@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------
+  # 1. Database Configuration
+  # ----------------------------------------
+  # Removed mysql-db service to use host machine's local MySQL database via host.docker.internal
+
+  # ----------------------------------------
+  # 2. Discovery Service (Eureka)
+  # ----------------------------------------
+  discovery-service:
+    build:
+      context: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - parkease-network
+
+  # ----------------------------------------
+  # 3. API Gateway
+  # ----------------------------------------
+  gateway-service:
+    build:
+      context: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      - discovery-service
+
+  # ----------------------------------------
+  # 4. Microservices
+  # ----------------------------------------
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_auth?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  vehicle-service:
+    build:
+      context: ./vehicle-service
+    container_name: vehicle-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_vehicle?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  parkinglot-service:
+    build:
+      context: ./parkinglot-service
+    container_name: parkinglot-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_parkinglot?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  parkingspot-service:
+    build:
+      context: ./parkingspot-service
+    container_name: parkingspot-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_spot?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  booking-service:
+    build:
+      context: ./booking-service
+    container_name: booking-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_booking?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_payment?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_notification?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  analytics-service:
+    build:
+      context: ./analytics-service
+    container_name: analytics-service
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/parkease_analytics?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - parkease-network
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+networks:
+  parkease-network:
+    driver: bridge
