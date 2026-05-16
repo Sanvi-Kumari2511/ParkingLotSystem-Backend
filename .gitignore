@@ -1,0 +1,20 @@
+# Environment variables - never commit this
+.env
+
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.metadata/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
